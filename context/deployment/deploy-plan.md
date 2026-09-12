@@ -54,7 +54,7 @@ Decyzje użytkownika: Workers Builds jako auto-deploy; klucze Supabase są dost�
   5. **Weryfikacja**: `npx wrangler deploy --dry-run` nie pokaże URL; dopiero prawdziwy `deploy` wypisuje `https://al-fiszki.<nazwa>.workers.dev`. Jeśli wypisze tylko `Deployed al-fiszki` bez URL — subdomena nie jest zarejestrowana, wróć do kroku 2.
   6. Własna domena (np. `fiszki.example.pl`) jest poza zakresem MVP; dopisać do `deploy-plan.md` jako follow-up (_Domains & Routes_ → _Add_ → _Custom domain_, wymaga strefy DNS na tym koncie).
 - [x] **Supabase**: projekt istnieje; potrzebne `Project URL` i `anon public key` (Settings → API). Do smoke-testu auth: Authentication → URL Configuration → _Site URL_ + _Redirect URLs_ muszą zawierać `https://al-fiszki.<subdomena>.workers.dev` (bez tego link potwierdzający z maila trafi na `localhost`). Jeśli e-mail confirmation jest włączone, test signup wymaga skrzynki; alternatywnie wyłączyć „Confirm email" na czas MVP.
-- [ ] **GitHub**: repo `ArekerA/fiszki` publiczne lub z dostępem dla Cloudflare GitHub App (instalacja w kroku Fazy 6). `gh` CLI nie jest potrzebne.
+- [x] **GitHub**: repo `ArekerA/fiszki` publiczne lub z dostępem dla Cloudflare GitHub App (instalacja w kroku Fazy 6). `gh` CLI nie jest potrzebne.
 - [x] **Node**: `22.14.0` wg `.nvmrc`; Workers Builds czyta `.nvmrc`, więc wersja buildu w chmurze będzie zgodna.
 
 ## Faza 1 — Ujednolicenie nazw i hand-offu (edycje w repo)
@@ -107,7 +107,7 @@ Decyzje użytkownika: Workers Builds jako auto-deploy; klucze Supabase są dost�
 - [x] Równolegle `npx wrangler tail --format json --status error` podczas powtórzenia smoke-testu z Fazy 4 na URL produkcyjnym; zapisać `cpuTime` z Workers Logs dla `/` i `/dashboard` jako baseline (rejestr ryzyk: monitorować od pierwszego deployu).
 - [x] `npx wrangler deployments list` i `npx wrangler versions list` — zanotować `VERSION_ID` pierwszej wersji do `deploy-plan.md` (cel rollbacku).
 - [x] Test rollbacku „na sucho": `npx wrangler rollback --help` i potwierdzenie, że wersja jest na liście (rejestr: przetestować raz przed incydentem; faktyczny rollback dopiero gdy będą ≥2 wersje).
-- [ ] Zaktualizować Supabase Auth _Site URL_/_Redirect URLs_ o URL produkcyjny (człowiek, jeśli nie zrobione w Fazie 0).
+- [x] Zaktualizować Supabase Auth _Site URL_/_Redirect URLs_ o URL produkcyjny (człowiek, jeśli nie zrobione w Fazie 0).
 
 ## Faza 6 — Workers Builds: auto-deploy z `master` przez Cloudflare
 
@@ -182,4 +182,5 @@ Decyzje użytkownika: Workers Builds jako auto-deploy; klucze Supabase są dost�
 - Mierzyć `cpuTime` każdej nowej strony z wyspą React; próg alarmowy: rozgrzane > 10 ms → rozważyć Paid ($5/mies.).
 - `OPENROUTER_API_KEY`: `envField` w `astro.config.mjs`, wpis w `configStatuses`, `wrangler secret put`, potem `versions upload`, by preview dostał sekret.
 - Własna domena (Settings → Domains & Routes → Custom domain) i `site` w `astro.config.mjs` (usuwa ostrzeżenie sitemap).
+- **2026-09-12**: użytkownik potwierdził Supabase Auth URL Configuration (Site URL / Redirect URLs z adresem produkcyjnym). Niezaznaczone pozostały wyłącznie edge-case'y, które nie wystąpiły.
 - Ten plik jest ground truth „co jest wdrożone" dla planowania kolejnych kamieni milowych.
