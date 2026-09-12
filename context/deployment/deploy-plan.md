@@ -2,7 +2,9 @@
 project: al-fiszki
 platform: cloudflare-workers
 plan_approved_at: 2026-09-12
-status: in-progress
+status: deployed
+last_workers_builds_version: 404881a3-0661-4aea-86db-5f14482b948e
+commits: [debbab2, cc146be]
 production_url: https://al-fiszki.arek-ludwikowski.workers.dev
 first_version_id: 27b3c82d-483f-4520-8345-8559cd912d95
 auto_provisioned_bindings: [SESSION (KV 18c09c8fa4b543c1bf4604179cc365bb), IMAGES (Images), ASSETS (Static Assets)]
@@ -117,7 +119,7 @@ Decyzje użytkownika: Workers Builds jako auto-deploy; klucze Supabase są dost�
   - Root directory: `/`
   - Build variables: brak wymaganych (`SUPABASE_*` są runtime secrets, nie build-time; build przechodzi bez nich). `NODE_VERSION` niepotrzebne — `.nvmrc`.
   - Non-production branches: build + preview URL włączone (domyślnie).
-- [ ] Trigger testowy: pusty commit lub drobna zmiana (np. dopisek w `AGENTS.md`) → push `master` → w panelu _Deployments_ status „Success"; `npx wrangler deployments list` pokazuje nową wersję ze źródłem „Workers Builds"; `npx wrangler builds list` / `builds view` do logów (jeśli komenda dostępna w 4.90.0 — inaczej panel).
+- [x] Trigger testowy: pusty commit lub drobna zmiana (np. dopisek w `AGENTS.md`) → push `master` → w panelu _Deployments_ status „Success"; `npx wrangler deployments list` pokazuje nową wersję ze źródłem „Workers Builds"; `npx wrangler builds list` / `builds view` do logów (jeśli komenda dostępna w 4.90.0 — inaczej panel).
 - [ ] Edge case: pierwszy build w Builds kończy się „Worker name mismatch" → oznacza, że push z nowym `name` nie dotarł; sprawdzić `git log origin/master`.
 - [ ] Edge case: Builds ma 1 równoległy build i 3000 min/mies. (Free) — solo dev OK; fork PR bez preview (akceptowane).
 - [x] Zapisać w `AGENTS.md`, że ręczny `wrangler deploy` jest dopuszczalny jako awaryjny, ale domyślna ścieżka to merge do `master`.
@@ -130,8 +132,8 @@ Decyzje użytkownika: Workers Builds jako auto-deploy; klucze Supabase są dost�
 
 ## Faza 8 — Artefakt planu
 
-- [ ] Zapisać ten plan (z aktualnymi statusami checkboxów, URL produkcyjnym, `VERSION_ID`, listą auto-provisionowanych bindingów, baseline `cpuTime`) do `context/deployment/deploy-plan.md` (utworzyć katalog `context/deployment/`). Nie pisać do `context/archive/`.
-- [ ] Dołączyć `deploy-plan.md`, `infrastructure.md` i zmiany z Fazy 1 do drugiego commitu (`m1l5`) i push.
+- [x] Zapisać ten plan (z aktualnymi statusami checkboxów, URL produkcyjnym, `VERSION_ID`, listą auto-provisionowanych bindingów, baseline `cpuTime`) do `context/deployment/deploy-plan.md` (utworzyć katalog `context/deployment/`). Nie pisać do `context/archive/`.
+- [x] Dołączyć `deploy-plan.md`, `infrastructure.md` i zmiany z Fazy 1 do drugiego commitu (`m1l5`) i push.
 
 ---
 
@@ -170,3 +172,14 @@ Decyzje użytkownika: Workers Builds jako auto-deploy; klucze Supabase są dost�
 - **2026-09-12 — Baseline `cpuTime` (Workers Logs przez `wrangler tail`, 4 rundy)**: `/` 2–5 ms, `/dashboard` (redirect z middleware, `getUser()` do Supabase) 1 ms, `/auth/signin` **6–30 ms** (SSR wyspy React `SignInForm`; pierwsze trafienia w izolat ~25–30 ms, rozgrzane 6 ms). Wszystkie `outcome: ok` mimo limitu 10 ms w planie Free — Cloudflare toleruje przekroczenia przy zimnym starcie, ale strony z większymi wyspami React (przegląd fiszek, generowanie) mogą trafić w 1102. Wniosek dla rejestru ryzyk: mierzyć `cpuTime` po każdej nowej stronie z `client:*`; budżet $5/mies. na Paid pozostaje w gotowości.
 - **2026-09-12 — Faza 6, krok 1**: commit `debbab2` („m1l5: pierwsze wdrożenie na Cloudflare Workers") wypchnięty na `origin/master` → uruchomił tylko CI lint/build w GitHub Actions. Uwaga: w kopii roboczej `.env.example` był skasowany (nie przeze mnie, prawdopodobnie `mv` na `.env`) — przywrócony z gita, nietrafił do commita jako usunięcie.
 - **2026-09-12 — Faza 6, krok 2**: użytkownik podpiął repo `ArekerA/fiszki` do Workera `al-fiszki` w panelu (Settings → Builds → Connect; gałąź `master`, build `npm run build`, deploy `npx wrangler deploy`, token API generowany przez Cloudflare). Samo podpięcie nie utworzyło buildu — ten commit (aktualizacja `deploy-plan.md`) jest triggerem testowym.
+- **2026-09-12 — Faza 6 OK**: push `cc146be` → Workers Builds zbudował i wdrożył wersję **`404881a3`** po ~60 s (bez udziału agenta; źródło w `deployments list` = deployment z buildu). Produkcja po auto-deployu: `/` 200, `/dashboard` → 302, `/auth/signin` 200, `/nie-istnieje` 404. GitHub Actions CI dla `cc146be`: success (lint + build, bez deployu). Auto-deploy `master` jest w rękach Cloudflare, zgodnie z decyzją użytkownika.
+- **Faza 7**: brak tokena API w repo/CI (celowo); preview URL publiczne, bez danych użytkowników na dziś — Cloudflare Access na `*-al-fiszki.*.workers.dev` do założenia przed pierwszą tabelą domenową. Destrukcyjne operacje pozostają ręczne.
+- **Pominięte świadomie**: `OPENROUTER_API_KEY` (dopiero z kodem generowania), własna domena, GitHub Actions jako deployer, testy rollbacku na żywo (dwie wersje produkcyjne są już dostępne: `27b3c82d`, `404881a3` — `npx wrangler rollback 27b3c82d -y` to procedura awaryjna). Ręczny test logowania na preview wykonał użytkownik przed „tak, deploy".
+
+## Follow-upy (poza zakresem pierwszego wdrożenia)
+
+- Cloudflare Access na wzorzec preview URL przed pierwszą migracją Supabase z danymi użytkowników.
+- Mierzyć `cpuTime` każdej nowej strony z wyspą React; próg alarmowy: rozgrzane > 10 ms → rozważyć Paid ($5/mies.).
+- `OPENROUTER_API_KEY`: `envField` w `astro.config.mjs`, wpis w `configStatuses`, `wrangler secret put`, potem `versions upload`, by preview dostał sekret.
+- Własna domena (Settings → Domains & Routes → Custom domain) i `site` w `astro.config.mjs` (usuwa ostrzeżenie sitemap).
+- Ten plik jest ground truth „co jest wdrożone" dla planowania kolejnych kamieni milowych.
