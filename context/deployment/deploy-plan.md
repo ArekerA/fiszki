@@ -102,15 +102,15 @@ Decyzje użytkownika: Workers Builds jako auto-deploy; klucze Supabase są dost�
 ## Faza 5 — Pierwszy deploy produkcyjny (jawna zgoda człowieka w czacie)
 
 - [x] Po „tak" od użytkownika: `npx wrangler deploy` → `https://al-fiszki.<subdomena>.workers.dev`.
-- [ ] Równolegle `npx wrangler tail --format json --status error` podczas powtórzenia smoke-testu z Fazy 4 na URL produkcyjnym; zapisać `cpuTime` z Workers Logs dla `/` i `/dashboard` jako baseline (rejestr ryzyk: monitorować od pierwszego deployu).
+- [x] Równolegle `npx wrangler tail --format json --status error` podczas powtórzenia smoke-testu z Fazy 4 na URL produkcyjnym; zapisać `cpuTime` z Workers Logs dla `/` i `/dashboard` jako baseline (rejestr ryzyk: monitorować od pierwszego deployu).
 - [x] `npx wrangler deployments list` i `npx wrangler versions list` — zanotować `VERSION_ID` pierwszej wersji do `deploy-plan.md` (cel rollbacku).
 - [x] Test rollbacku „na sucho": `npx wrangler rollback --help` i potwierdzenie, że wersja jest na liście (rejestr: przetestować raz przed incydentem; faktyczny rollback dopiero gdy będą ≥2 wersje).
 - [ ] Zaktualizować Supabase Auth _Site URL_/_Redirect URLs_ o URL produkcyjny (człowiek, jeśli nie zrobione w Fazie 0).
 
 ## Faza 6 — Workers Builds: auto-deploy z `master` przez Cloudflare
 
-- [ ] Najpierw commit + push zmian z Fazy 1 do `master` (nazwa `al-fiszki` w `wrangler.jsonc` musi być w repo, bo Builds deployuje z gita; push uruchomi tylko istniejące CI lint/build — Builds jeszcze nie podpięte). Commit message po polsku, z atrybucją `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`.
-- [ ] Panel Cloudflare (człowiek): Workers & Pages → `al-fiszki` → Settings → **Build** → _Connect_ → GitHub → autoryzacja Cloudflare GitHub App dla `ArekerA/fiszki` → ustawienia:
+- [x] Najpierw commit + push zmian z Fazy 1 do `master` (nazwa `al-fiszki` w `wrangler.jsonc` musi być w repo, bo Builds deployuje z gita; push uruchomi tylko istniejące CI lint/build — Builds jeszcze nie podpięte). Commit message po polsku, z atrybucją `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`.
+- [x] Panel Cloudflare (człowiek): Workers & Pages → `al-fiszki` → Settings → **Build** → _Connect_ → GitHub → autoryzacja Cloudflare GitHub App dla `ArekerA/fiszki` → ustawienia:
   - Production branch: `master`
   - Build command: `npm run build`
   - Deploy command: `npx wrangler deploy`
@@ -120,13 +120,13 @@ Decyzje użytkownika: Workers Builds jako auto-deploy; klucze Supabase są dost�
 - [ ] Trigger testowy: pusty commit lub drobna zmiana (np. dopisek w `AGENTS.md`) → push `master` → w panelu _Deployments_ status „Success"; `npx wrangler deployments list` pokazuje nową wersję ze źródłem „Workers Builds"; `npx wrangler builds list` / `builds view` do logów (jeśli komenda dostępna w 4.90.0 — inaczej panel).
 - [ ] Edge case: pierwszy build w Builds kończy się „Worker name mismatch" → oznacza, że push z nowym `name` nie dotarł; sprawdzić `git log origin/master`.
 - [ ] Edge case: Builds ma 1 równoległy build i 3000 min/mies. (Free) — solo dev OK; fork PR bez preview (akceptowane).
-- [ ] Zapisać w `AGENTS.md`, że ręczny `wrangler deploy` jest dopuszczalny jako awaryjny, ale domyślna ścieżka to merge do `master`.
+- [x] Zapisać w `AGENTS.md`, że ręczny `wrangler deploy` jest dopuszczalny jako awaryjny, ale domyślna ścieżka to merge do `master`.
 
 ## Faza 7 — Bezpieczeństwo dostępu i higiena
 
-- [ ] Preview URL (`*-al-fiszki.*.workers.dev`) są publiczne i bez logów: dopóki scaffold nie ma danych użytkowników, akceptujemy; odnotować w `deploy-plan.md`, że przed pierwszą tabelą domenową należy założyć Cloudflare Access na wzorzec preview (rejestr).
-- [ ] Nie tworzymy API tokena (Workers Builds używa własnego tokena zarządzanego przez Cloudflare; GitHub Actions nie deployuje) — brak sekretu `CLOUDFLARE_API_TOKEN` w repo to celowe. Jeśli w przyszłości Actions ma deployować: token tylko `Workers Scripts:Edit` + `Account Settings:Read`.
-- [ ] Destrukcyjne operacje (usunięcie Workera, KV, zmiana planu, rotacja klucza Supabase) — wyłącznie człowiek w panelu.
+- [x] Preview URL (`*-al-fiszki.*.workers.dev`) są publiczne i bez logów: dopóki scaffold nie ma danych użytkowników, akceptujemy; odnotować w `deploy-plan.md`, że przed pierwszą tabelą domenową należy założyć Cloudflare Access na wzorzec preview (rejestr).
+- [x] Nie tworzymy API tokena (Workers Builds używa własnego tokena zarządzanego przez Cloudflare; GitHub Actions nie deployuje) — brak sekretu `CLOUDFLARE_API_TOKEN` w repo to celowe. Jeśli w przyszłości Actions ma deployować: token tylko `Workers Scripts:Edit` + `Account Settings:Read`.
+- [x] Destrukcyjne operacje (usunięcie Workera, KV, zmiana planu, rotacja klucza Supabase) — wyłącznie człowiek w panelu.
 
 ## Faza 8 — Artefakt planu
 
@@ -167,3 +167,6 @@ Decyzje użytkownika: Workers Builds jako auto-deploy; klucze Supabase są dost�
 - ~~Otwarte~~ (rozwiązane niżej): człowiek ponownie ustawia `SUPABASE_URL` (zalecane `npx wrangler secret bulk .dev.vars` — bierze dokładnie wartości działające lokalnie); potem powtórka smoke-testu na `smoke-al-fiszki.arek-ludwikowski.workers.dev`.
 - **2026-09-12 — Faza 3 bis / Faza 4 OK**: człowiek nadpisał sekrety (`wrangler secret bulk .dev.vars`) → powstały wersje `f5d1982f`, `5b59c969`. **Lekcja: sekrety są per wersja** — alias `smoke` wskazywał starą wersję `be456c34` z wadliwym sekretem i dalej zwracał 500; wersja `5b59c969` (utworzona przez zmianę sekretu) działała od razu. Po zmianie sekretu trzeba ponownie zrobić `versions upload`, żeby alias preview dostał nowe wartości (produkcja po `wrangler deploy` dostaje je automatycznie, bo deploy tworzy nową wersję). Nowy alias `smoke` = wersja `69f94c69`. Smoke-test: `/` 200 bez banera Supabase, `/dashboard` → 302 `/auth/signin`, `/auth/signin` 200. Brak objawów astro#15434.
 - **2026-09-12 — Faza 5 (produkcja)**: użytkownik potwierdził „tak, deploy". `npm run build` → `npx wrangler deploy` (11.8 s upload, startup 21 ms). URL: `https://al-fiszki.arek-ludwikowski.workers.dev`, **Version ID `27b3c82d-483f-4520-8345-8559cd912d95`** (cel rollbacku; poprzednia aktywna to placeholder `5b59c969` — nie cofać do niej). Smoke-test produkcji: `/` 200 bez banera, `/dashboard` → 302 `/auth/signin`, `/auth/signin` i `/auth/signup` 200, `/nie-istnieje` 404; czasy 0.1–0.2 s. `wrangler rollback [version-id] -y` dostępny (sprawdzono `--help`). Zmiany triggerów (workers.dev, preview URL) wdrożone razem z deployem.
+- **2026-09-12 — Baseline `cpuTime` (Workers Logs przez `wrangler tail`, 4 rundy)**: `/` 2–5 ms, `/dashboard` (redirect z middleware, `getUser()` do Supabase) 1 ms, `/auth/signin` **6–30 ms** (SSR wyspy React `SignInForm`; pierwsze trafienia w izolat ~25–30 ms, rozgrzane 6 ms). Wszystkie `outcome: ok` mimo limitu 10 ms w planie Free — Cloudflare toleruje przekroczenia przy zimnym starcie, ale strony z większymi wyspami React (przegląd fiszek, generowanie) mogą trafić w 1102. Wniosek dla rejestru ryzyk: mierzyć `cpuTime` po każdej nowej stronie z `client:*`; budżet $5/mies. na Paid pozostaje w gotowości.
+- **2026-09-12 — Faza 6, krok 1**: commit `debbab2` („m1l5: pierwsze wdrożenie na Cloudflare Workers") wypchnięty na `origin/master` → uruchomił tylko CI lint/build w GitHub Actions. Uwaga: w kopii roboczej `.env.example` był skasowany (nie przeze mnie, prawdopodobnie `mv` na `.env`) — przywrócony z gita, nietrafił do commita jako usunięcie.
+- **2026-09-12 — Faza 6, krok 2**: użytkownik podpiął repo `ArekerA/fiszki` do Workera `al-fiszki` w panelu (Settings → Builds → Connect; gałąź `master`, build `npm run build`, deploy `npx wrangler deploy`, token API generowany przez Cloudflare). Samo podpięcie nie utworzyło buildu — ten commit (aktualizacja `deploy-plan.md`) jest triggerem testowym.
