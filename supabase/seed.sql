@@ -1,0 +1,2 @@
+-- Brak danych startowych. Plik istnieje, bo supabase/config.toml ([db.seed] sql_paths) na niego wskazuje
+-- i `supabase db reset` ma być deterministyczny. Użytkownicy testowi powstają w supabase/tests/*.sql.

@@ -41,7 +41,7 @@ Ręczne tworzenie fiszek jest czasochłonne i wymaga decyzji, co jest warte zapi
 
 | ID   | Change ID                  | Outcome (user can …)                                                                                      | Prerequisites    | PRD refs                                | Status   |
 | ---- | -------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------- | --------------------------------------- | -------- |
-| F-01 | private-flashcard-store    | (foundation) trwały zapis fiszki przypisanej do właściciela, z egzekwowaną izolacją per użytkownik        | —                | US-01, NFR (izolacja danych), Guardrail | ready    |
+| F-01 | private-flashcard-store    | (foundation) trwały zapis fiszki przypisanej do właściciela, z egzekwowaną izolacją per użytkownik        | —                | US-01, NFR (izolacja danych), Guardrail | in-progress |
 | F-02 | ai-generation-channel      | (foundation) kanał do dostawcy AI działa z produkcji: odpowiedź dociera przyrostowo w limicie < 10 s      | —                | FR-003, NFR (< 10 s), US-02             | ready    |
 | S-01 | account-and-empty-deck     | użytkownik rejestruje się lub loguje i widzi swój własny (na start pusty) zestaw fiszek                   | F-01             | US-01, FR-001, FR-002                   | proposed |
 | S-02 | gated-ai-generation        | użytkownik wkleja tekst, dostaje fiszki AI z postępem, przegląda, poprawia, odrzuca i akceptuje wybrane   | F-01, F-02, S-01 | US-02, FR-003, FR-004                   | proposed |
@@ -85,7 +85,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** To jedyna warstwa całkowicie nieobecna w bazie kodu, a wymagana przez każdy plaster; sekwencjonowana pierwsza, bo bez niej gwiazda przewodnia nie ma gdzie zapisać zaakceptowanych fiszek. Zakres celowo minimalny: jedna encja i polityka izolacji. Dane o powtórkach (SM-2) NIE wchodzą tutaj — dochodzą w S-05, gdy pierwszy raz są potrzebne.
-- **Status:** ready
+- **Status:** in-progress
 
 ### F-02: Kanał do dostawcy AI działający z produkcji
 
