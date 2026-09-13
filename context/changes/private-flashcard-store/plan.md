@@ -348,11 +348,11 @@ Skala `users: small`; jedyny wzór zapytania w MVP to „lista aktywnych fiszek 
 
 #### Automated
 
-- [x] 3.1 `migration list --linked` pokazuje migrację jako zastosowaną zdalnie
-- [x] 3.2 Typy zdalne tożsame z `src/db/database.types.ts`
-- [x] 3.3 `npm run lint && npm run build` po edycji AGENTS.md
+- [x] 3.1 `migration list --linked` pokazuje migrację jako zastosowaną zdalnie — 373f2f8
+- [x] 3.2 Typy zdalne tożsame z `src/db/database.types.ts` — 373f2f8
+- [x] 3.3 `npm run lint && npm run build` po edycji AGENTS.md — 373f2f8
 
 #### Manual
 
-- [x] 3.4 Produkcyjny URL odpowiada, przepływ auth działa
-- [x] 3.5 Panel Supabase: tabela `flashcards` z RLS, Security Advisor bez ostrzeżeń, potwierdzenie człowieka
+- [x] 3.4 Produkcyjny URL odpowiada, przepływ auth działa — 373f2f8
+- [x] 3.5 Panel Supabase: tabela `flashcards` z RLS, Security Advisor bez ostrzeżeń, potwierdzenie człowieka — 373f2f8

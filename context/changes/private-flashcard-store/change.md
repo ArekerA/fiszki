@@ -1,7 +1,7 @@
 ---
 change_id: private-flashcard-store
 title: Fundament F-01: prywatny, trwały magazyn fiszek z izolacją per użytkownik
-status: implementing
+status: implemented
 created: 2026-09-13
 updated: 2026-09-13
 archived_at: null
