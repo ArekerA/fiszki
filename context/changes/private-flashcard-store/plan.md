@@ -320,29 +320,29 @@ Skala `users: small`; jedyny wzór zapytania w MVP to „lista aktywnych fiszek 
 
 #### Automated
 
-- [x] 1.1 Migracja aplikuje się na czystym stacku (`npm run db:reset`)
-- [x] 1.2 Test izolacji przechodzi (`npm run db:test`)
-- [x] 1.3 Schemat bez błędów lintu (`npx supabase db lint --local`)
-- [x] 1.4 Formatowanie `package.json` czyste (`npm run format`)
+- [x] 1.1 Migracja aplikuje się na czystym stacku (`npm run db:reset`) — 738cc56
+- [x] 1.2 Test izolacji przechodzi (`npm run db:test`) — 738cc56
+- [x] 1.3 Schemat bez błędów lintu (`npx supabase db lint --local`) — 738cc56
+- [x] 1.4 Formatowanie `package.json` czyste (`npm run format`) — 738cc56
 
 #### Manual
 
-- [x] 1.5 Studio: RLS włączone, 3 polityki, brak DELETE
-- [x] 1.6 Negatywny test: zepsuta polityka → `db:test` faluje, plik przywrócony
+- [x] 1.5 Studio: RLS włączone, 3 polityki, brak DELETE — 738cc56
+- [x] 1.6 Negatywny test: zepsuta polityka → `db:test` faluje, plik przywrócony — 738cc56
 
 ### Phase 2: Typy i warstwa dostępu w kodzie
 
 #### Automated
 
-- [ ] 2.1 Typy zsynchronizowane (`npm run db:types` bez diffu)
-- [ ] 2.2 Lint przechodzi (`npx astro sync && npm run lint`)
-- [ ] 2.3 Build przechodzi (`npm run build`)
-- [ ] 2.4 `npx astro check` bez błędów w `src/lib/**`
+- [x] 2.1 Typy zsynchronizowane (`npm run db:types` bez diffu)
+- [x] 2.2 Lint przechodzi (`npx astro sync && npm run lint`)
+- [x] 2.3 Build przechodzi (`npm run build`)
+- [x] 2.4 `npx astro check` bez błędów w `src/lib/**`
 
 #### Manual
 
-- [ ] 2.5 `/auth/signin` → `/dashboard` bez regresji w `npm run dev`
-- [ ] 2.6 Przegląd: brak `user_id` w `insertFlashcard`, limity Zod = CHECK
+- [x] 2.5 `/auth/signin` → `/dashboard` bez regresji w `npm run dev`
+- [x] 2.6 Przegląd: brak `user_id` w `insertFlashcard`, limity Zod = CHECK
 
 ### Phase 3: Migracja na produkcję i domknięcie dokumentacji
 
