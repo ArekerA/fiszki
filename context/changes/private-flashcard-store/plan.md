@@ -334,25 +334,25 @@ Skala `users: small`; jedyny wzór zapytania w MVP to „lista aktywnych fiszek 
 
 #### Automated
 
-- [x] 2.1 Typy zsynchronizowane (`npm run db:types` bez diffu)
-- [x] 2.2 Lint przechodzi (`npx astro sync && npm run lint`)
-- [x] 2.3 Build przechodzi (`npm run build`)
-- [x] 2.4 `npx astro check` bez błędów w `src/lib/**`
+- [x] 2.1 Typy zsynchronizowane (`npm run db:types` bez diffu) — d5e2c2a
+- [x] 2.2 Lint przechodzi (`npx astro sync && npm run lint`) — d5e2c2a
+- [x] 2.3 Build przechodzi (`npm run build`) — d5e2c2a
+- [x] 2.4 `npx astro check` bez błędów w `src/lib/**` — d5e2c2a
 
 #### Manual
 
-- [x] 2.5 `/auth/signin` → `/dashboard` bez regresji w `npm run dev`
-- [x] 2.6 Przegląd: brak `user_id` w `insertFlashcard`, limity Zod = CHECK
+- [x] 2.5 `/auth/signin` → `/dashboard` bez regresji w `npm run dev` — d5e2c2a
+- [x] 2.6 Przegląd: brak `user_id` w `insertFlashcard`, limity Zod = CHECK — d5e2c2a
 
 ### Phase 3: Migracja na produkcję i domknięcie dokumentacji
 
 #### Automated
 
-- [ ] 3.1 `migration list --linked` pokazuje migrację jako zastosowaną zdalnie
-- [ ] 3.2 Typy zdalne tożsame z `src/db/database.types.ts`
-- [ ] 3.3 `npm run lint && npm run build` po edycji AGENTS.md
+- [x] 3.1 `migration list --linked` pokazuje migrację jako zastosowaną zdalnie
+- [x] 3.2 Typy zdalne tożsame z `src/db/database.types.ts`
+- [x] 3.3 `npm run lint && npm run build` po edycji AGENTS.md
 
 #### Manual
 
-- [ ] 3.4 Produkcyjny URL odpowiada, przepływ auth działa
-- [ ] 3.5 Panel Supabase: tabela `flashcards` z RLS, Security Advisor bez ostrzeżeń, potwierdzenie człowieka
+- [x] 3.4 Produkcyjny URL odpowiada, przepływ auth działa
+- [x] 3.5 Panel Supabase: tabela `flashcards` z RLS, Security Advisor bez ostrzeżeń, potwierdzenie człowieka

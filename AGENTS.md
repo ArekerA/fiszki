@@ -16,11 +16,13 @@
 - Adapter auto-provisionuje bindingi `SESSION` (KV) i `IMAGES` przy deployu — widać je w `npx wrangler deploy --dry-run`. Kod ich nie używa (auth = cookies Supabase); nie usuwać ich ręcznie, bo `wrangler rollback` na wersję z bindingiem do usuniętego zasobu jest blokowany.
 - `compatibility_date` w `wrangler.jsonc` oraz wersje `@astrojs/cloudflare` i `wrangler` podbijać tylko świadomym commitem z przeczytanym changelogiem (zmiana daty zmienia runtime bez zmiany kodu; od 2026-08-04 `nodejs_compat` jest domyślne).
 - Rollback: `npx wrangler rollback [VERSION_ID] -y` (do 100 wersji, `npx wrangler versions list`). Nie cofa sekretów ani migracji Supabase — migracje tylko addytywne. Logi: `npx wrangler tail --format json --status error` (Free: 3 dni retencji, preview URL bez logów).
-- Człowiek, nie agent: pierwszy deploy produkcyjny, rollback, rotacja kluczy, usunięcie Workera/KV, zmiana planu Free → Paid, operacje w panelu Supabase.
+- Człowiek, nie agent: pierwszy deploy produkcyjny, rollback, rotacja kluczy, usunięcie Workera/KV, zmiana planu Free → Paid, operacje w panelu Supabase, `supabase link` i `supabase db push` (migracje na hostowaną bazę).
 
 ## Pułapki
 
-- `supabase/` zawiera tylko `config.toml` — żadnych migracji ani `seed.sql` (choć `config.toml` na niego wskazuje). Lokalny stack: `npx supabase start` (Docker). Pierwsza tabela domenowa (fiszki) będzie pierwszą migracją w `supabase/migrations/` i musi mieć RLS per użytkownik (PRD: izolacja danych).
+- Baza: migracje w `supabase/migrations/` (pierwsza: `create_flashcards`), testy pgTAP w `supabase/tests/*.sql`, `supabase/seed.sql` celowo pusty (wskazuje na niego `config.toml`). Lokalny stack: `npm run db:start` (Docker). **Każda nowa tabela domenowa: RLS włączone, polityki osobno per operacja dla roli `authenticated`, test izolacji w `supabase/tests/`** (`npm run db:test` biegnie na aktualnym stanie bazy — po zmianie migracji najpierw `npm run db:reset`). Funkcje SQL zawsze z `set search_path = ''` (Security Advisor: `function_search_path_mutable`; `db lint` tego nie wykrywa).
+- Fiszki są soft-usuwane (`deleted_at`): polityka SELECT pomija usunięte, uprawnienie DELETE jest odebrane rolom `anon`/`authenticated`. Postgres sprawdza nowy wiersz po UPDATE także względem polityki SELECT, więc klient **nie może** sam ustawić `deleted_at` (RLS odrzuci) — jedyna droga to RPC `soft_delete_flashcard(id)` (security definer, tylko własne fiszki, zwraca `true/false`). Przywracanie usuniętych fiszek z klienta jest niemożliwe (świadoma decyzja MVP; zmiana = osobna migracja). `src/lib/flashcards.ts` dodatkowo filtruje `deleted_at is null`.
+- Pułapki pgTAP: `count(*)` to `bigint` — literal w `is()` rzutuj `::bigint`; CTE modyfikujące dane musi być na najwyższym poziomie (`with r as (update … returning 1) select is(count(*), …) from r`); `throws_ok` z kodem błędu to forma 4-argumentowa `(sql, '42501', null, opis)` — 3-argumentowa traktuje trzeci argument jako tekst komunikatu. Użytkowników testowych wstawiaj do `auth.users (id, email)` jako superuser, a `auth.uid()` symuluj przez `set local role authenticated` + `set local request.jwt.claims = '{"sub":"<uuid>","role":"authenticated"}'`.
 - Nazwa Workera (`wrangler.jsonc` `name`) i `supabase/config.toml` `project_id` to `al-fiszki`; `package.json` `name` celowo został `10x-astro-starter` (nie ma znaczenia dla deployu). Nie zmieniać `name` Workera — Workers Builds i sekrety są przypięte do tej nazwy.
 - ESLint: `react-compiler/react-compiler` jako `error` (kod React musi być zgodny z React Compiler), `no-console` jako `warn`, `astro/no-set-html-directive` jako `error`. Nieużywane zmienne dozwolone tylko z prefiksem `_`.
 - Runtime Cloudflare Workers ogranicza czas i API Node — generowanie fiszek przez LLM (limit < 10 s z PRD) planuj jako streaming lub z raportowaniem postępu, nie jako długie blokujące żądanie.
@@ -29,7 +31,7 @@
 
 ## Projekt
 
-**10xCards / al-fiszki** — aplikacja web do generowania fiszek przez AI i nauki metodą spaced repetition. Wymagania: `@context/foundation/prd.md` (PRD po polsku, user stories US-xx, wymagania FR-xxx). Decyzja o stacku i jej uzasadnienie: `@context/foundation/tech-stack.md`. Kod to na dziś nietknięty scaffold startera `10x-astro-starter` (Astro 6 SSR + React 19 + Tailwind 4 + Supabase Auth + Cloudflare Workers); logika domenowa (fiszki, generowanie AI, algorytm powtórek) jeszcze nie istnieje.
+**10xCards / al-fiszki** — aplikacja web do generowania fiszek przez AI i nauki metodą spaced repetition. Wymagania: `@context/foundation/prd.md` (PRD po polsku, user stories US-xx, wymagania FR-xxx). Decyzja o stacku i jej uzasadnienie: `@context/foundation/tech-stack.md`. Stack: scaffold startera `10x-astro-starter` (Astro 6 SSR + React 19 + Tailwind 4 + Supabase Auth + Cloudflare Workers). Z logiki domenowej istnieje fundament F-01: tabela `flashcards` z RLS (`supabase/migrations/`) i moduł `src/lib/flashcards.ts`; UI fiszek, generowanie AI i algorytm powtórek jeszcze nie istnieją (roadmapa: `@context/foundation/roadmap.md`).
 
 ## Architektura
 
@@ -38,6 +40,7 @@
 - Formularze auth to komponenty React (`src/components/auth/*`) robiące tylko walidację po stronie klienta; submit idzie natywnym `POST` do `src/pages/api/auth/{signin,signup,signout}.ts`, a endpointy odpowiadają `redirect` z komunikatem w `?error=` odczytywanym przez stronę `.astro`. Nowe endpointy trzymaj w tej konwencji (form POST + redirect), zamiast mieszać z fetch/JSON.
 - Stan chroniony: `src/pages/dashboard.astro` czyta `Astro.locals.user` — to wzór dla kolejnych stron wymagających logowania.
 - Podział komponentów: komponent trafia do React tylko gdy ma stan, handlery zdarzeń lub efekty i jest montowany z dyrektywą `client:*`; wszystko inne (treść statyczna, layout) to `.astro`. Współdzielone helpery w `src/lib/`. shadcn/ui (styl `new-york`, ikony lucide) w `src/components/ui/`, dodawanie: `npx shadcn@latest add <name>`. Klasy Tailwind łącz przez `cn()` z `@/lib/utils`.
+- **Warstwa danych**: `src/db/database.types.ts` to plik **generowany** (`npm run db:types`, ignorowany przez ESLint i Prettier) — nigdy nie edytuj go ręcznie, regeneruj po każdej migracji i commituj. `createClient()` zwraca klienta typowanego `Database`; typ `TypedSupabaseClient` z `@/lib/supabase` przyjmują moduły domenowe w `src/lib/` (np. `src/lib/flashcards.ts`: `listFlashcards`, `insertFlashcard`), które **nie tworzą klienta i nie czytają `astro:env/server`** — wywołujący sprawdza `null`. Walidacja wejścia przez `astro/zod` (Zod 4, bez osobnej zależności); limity w Zod muszą być co najmniej tak surowe jak CHECK-i w bazie. Funkcje zapisu nie przyjmują `user_id` — ustawia go baza (`default auth.uid()`).
 - Alias `@/*` → `./src/*`.
 
 ## Komendy
@@ -53,8 +56,16 @@ npx astro sync     # regeneruje .astro/types.d.ts — uruchom przed lintem na ś
 npx wrangler deploy --dry-run                       # walidacja konfiguracji bez mutacji (po build)
 npx wrangler versions upload --preview-alias smoke  # preview URL, produkcja nietknięta
 npx wrangler deploy                                 # produkcja — ścieżka awaryjna, normalnie robi to Workers Builds
+npm run db:start / db:stop                          # lokalny Supabase (Docker); Studio: http://127.0.0.1:54323
+npm run db:reset                                    # czysta baza: migracje + seed.sql
+npm run db:test                                     # testy pgTAP z supabase/tests/ (na aktualnym stanie bazy)
+npm run db:types                                    # regeneruje src/db/database.types.ts z lokalnej bazy — po każdej migracji
+npx supabase migration new <nazwa>                  # nowa migracja (tylko addytywne)
+npx supabase db lint --local                        # lint schematu
 ```
 
-- Brak skonfigurowanego test runnera — w repo nie ma testów ani skryptu `test`.
+- `npx supabase link --project-ref <ref>` i `npx supabase db push` (migracje na hostowany projekt) wykonuje **człowiek**; agent może tylko czytać: `npx supabase migration list --linked`, `npx supabase gen types --linked`. Link żyje w `supabase/.temp` (gitignorowane) — każdy nowy checkout linkuje ponownie.
+
+- Brak runnera testów JS ani skryptu `test`; jedyne testy to pgTAP (`npm run db:test`, wymaga Dockera). CI ich nie uruchamia — tylko lint + build.
 - Pre-commit (husky + lint-staged): `eslint --fix` na `*.{ts,tsx,astro}`, `prettier --write` na `*.{json,css,md}`. Commit odrzuci nienaprawialne błędy lintu.
 - Node `22.14.0` (`.nvmrc`). CI (`.github/workflows/ci.yml`) na push/PR do `master`: `npm ci` → `astro sync` → `lint` → `build`.
