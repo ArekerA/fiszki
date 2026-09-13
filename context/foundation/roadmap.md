@@ -39,25 +39,25 @@ Ręczne tworzenie fiszek jest czasochłonne i wymaga decyzji, co jest warte zapi
 
 ## At a glance
 
-| ID   | Change ID                  | Outcome (user can …)                                                                                      | Prerequisites    | PRD refs                                | Status   |
-| ---- | -------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------- | --------------------------------------- | -------- |
-| F-01 | private-flashcard-store    | (foundation) trwały zapis fiszki przypisanej do właściciela, z egzekwowaną izolacją per użytkownik        | —                | US-01, NFR (izolacja danych), Guardrail | in-progress |
-| F-02 | ai-generation-channel      | (foundation) kanał do dostawcy AI działa z produkcji: odpowiedź dociera przyrostowo w limicie < 10 s      | —                | FR-003, NFR (< 10 s), US-02             | ready    |
-| S-01 | account-and-empty-deck     | użytkownik rejestruje się lub loguje i widzi swój własny (na start pusty) zestaw fiszek                   | F-01             | US-01, FR-001, FR-002                   | proposed |
-| S-02 | gated-ai-generation        | użytkownik wkleja tekst, dostaje fiszki AI z postępem, przegląda, poprawia, odrzuca i akceptuje wybrane   | F-01, F-02, S-01 | US-02, FR-003, FR-004                   | proposed |
-| S-03 | manual-flashcard-create    | użytkownik ręcznie tworzy fiszkę (pytanie + odpowiedź), która ląduje w zestawie na równi z fiszkami z AI  | S-01             | US-04, FR-007                           | proposed |
-| S-04 | flashcard-edit-delete      | użytkownik edytuje treść fiszki w zestawie i świadomie usuwa zbędną fiszkę bez utraty pozostałych         | S-01, S-03       | US-03, FR-005, FR-006                   | proposed |
-| S-05 | srs-review-session         | użytkownik startuje sesję powtórek SM-2, odpowiada na fiszki, ma zaplanowane kolejne powtórki i podsumowanie | S-01, S-03       | US-05, FR-008                           | proposed |
+| ID   | Change ID               | Outcome (user can …)                                                                                         | Prerequisites    | PRD refs                                | Status   |
+| ---- | ----------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------- | --------------------------------------- | -------- |
+| F-01 | private-flashcard-store | (foundation) trwały zapis fiszki przypisanej do właściciela, z egzekwowaną izolacją per użytkownik           | —                | US-01, NFR (izolacja danych), Guardrail | done     |
+| F-02 | ai-generation-channel   | (foundation) kanał do dostawcy AI działa z produkcji: odpowiedź dociera przyrostowo w limicie < 10 s         | —                | FR-003, NFR (< 10 s), US-02             | ready    |
+| S-01 | account-and-empty-deck  | użytkownik rejestruje się lub loguje i widzi swój własny (na start pusty) zestaw fiszek                      | F-01             | US-01, FR-001, FR-002                   | proposed |
+| S-02 | gated-ai-generation     | użytkownik wkleja tekst, dostaje fiszki AI z postępem, przegląda, poprawia, odrzuca i akceptuje wybrane      | F-01, F-02, S-01 | US-02, FR-003, FR-004                   | proposed |
+| S-03 | manual-flashcard-create | użytkownik ręcznie tworzy fiszkę (pytanie + odpowiedź), która ląduje w zestawie na równi z fiszkami z AI     | S-01             | US-04, FR-007                           | proposed |
+| S-04 | flashcard-edit-delete   | użytkownik edytuje treść fiszki w zestawie i świadomie usuwa zbędną fiszkę bez utraty pozostałych            | S-01, S-03       | US-03, FR-005, FR-006                   | proposed |
+| S-05 | srs-review-session      | użytkownik startuje sesję powtórek SM-2, odpowiada na fiszki, ma zaplanowane kolejne powtórki i podsumowanie | S-01, S-03       | US-05, FR-008                           | proposed |
 
 ## Streams
 
 Navigation aid — groups items that share a Prerequisites chain. Canonical ordering still lives in the dependency graph below; this table is the proposed reading order across parallel tracks.
 
-| Stream | Theme                              | Chain                      | Note                                                                                                   |
-| ------ | ---------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------ |
-| A      | Prywatny zestaw i generowanie AI   | `F-01` → `S-01` → `S-02`   | Ścieżka do gwiazdy przewodniej; przy celu `market-feedback` ma pierwszeństwo przy każdym remisie.       |
-| B      | Kanał do dostawcy AI               | `F-02`                     | Równoległy do F-01; dołącza do Stream A w S-02. Redukuje najbardziej ryzykowne założenie techniczne.    |
-| C      | Ręczny zestaw i pętla nauki        | `S-03` → `S-04` → `S-05`   | Dołącza do Stream A w S-01; cały strumień może iść równolegle z S-02 w osobnych uruchomieniach agenta.  |
+| Stream | Theme                            | Chain                    | Note                                                                                                   |
+| ------ | -------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| A      | Prywatny zestaw i generowanie AI | `F-01` → `S-01` → `S-02` | Ścieżka do gwiazdy przewodniej; przy celu `market-feedback` ma pierwszeństwo przy każdym remisie.      |
+| B      | Kanał do dostawcy AI             | `F-02`                   | Równoległy do F-01; dołącza do Stream A w S-02. Redukuje najbardziej ryzykowne założenie techniczne.   |
+| C      | Ręczny zestaw i pętla nauki      | `S-03` → `S-04` → `S-05` | Dołącza do Stream A w S-01; cały strumień może iść równolegle z S-02 w osobnych uruchomieniach agenta. |
 
 ## Baseline
 
@@ -85,7 +85,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** To jedyna warstwa całkowicie nieobecna w bazie kodu, a wymagana przez każdy plaster; sekwencjonowana pierwsza, bo bez niej gwiazda przewodnia nie ma gdzie zapisać zaakceptowanych fiszek. Zakres celowo minimalny: jedna encja i polityka izolacji. Dane o powtórkach (SM-2) NIE wchodzą tutaj — dochodzą w S-05, gdy pierwszy raz są potrzebne.
-- **Status:** in-progress
+- **Status:** done
 
 ### F-02: Kanał do dostawcy AI działający z produkcji
 
@@ -167,15 +167,15 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Backlog Handoff
 
-| Roadmap ID | Change ID               | Suggested issue title                                                  | Ready for `/10x-plan` | Notes                                                                 |
-| ---------- | ----------------------- | ---------------------------------------------------------------------- | --------------------- | --------------------------------------------------------------------- |
-| F-01       | private-flashcard-store | Fundament: prywatny, trwały magazyn fiszek z izolacją per użytkownik   | yes                   | Run `/10x-plan private-flashcard-store` — odblokowuje gwiazdę S-02   |
-| F-02       | ai-generation-channel   | Fundament: kanał do dostawcy AI z produkcji w limicie < 10 s           | yes                   | Równolegle z F-01; wymaga klucza dostawcy wpisanego przez człowieka   |
-| S-01       | account-and-empty-deck  | Konto i własny, pusty zestaw fiszek                                    | no                    | Czeka na F-01                                                         |
-| S-02       | gated-ai-generation     | Generowanie fiszek AI z przeglądem i akceptacją                        | no                    | Gwiazda przewodnia; czeka na F-01, F-02, S-01                         |
-| S-03       | manual-flashcard-create | Ręczne tworzenie fiszki                                                | no                    | Czeka na S-01; potem równolegle z S-02                                |
-| S-04       | flashcard-edit-delete   | Edycja i świadome usuwanie fiszki                                      | no                    | Czeka na S-01, S-03                                                   |
-| S-05       | srs-review-session      | Sesja powtórek SM-2 z podsumowaniem                                    | no                    | Czeka na S-01, S-03                                                   |
+| Roadmap ID | Change ID               | Suggested issue title                                                | Ready for `/10x-plan` | Notes                                                               |
+| ---------- | ----------------------- | -------------------------------------------------------------------- | --------------------- | ------------------------------------------------------------------- |
+| F-01       | private-flashcard-store | Fundament: prywatny, trwały magazyn fiszek z izolacją per użytkownik | yes                   | Run `/10x-plan private-flashcard-store` — odblokowuje gwiazdę S-02  |
+| F-02       | ai-generation-channel   | Fundament: kanał do dostawcy AI z produkcji w limicie < 10 s         | yes                   | Równolegle z F-01; wymaga klucza dostawcy wpisanego przez człowieka |
+| S-01       | account-and-empty-deck  | Konto i własny, pusty zestaw fiszek                                  | no                    | Czeka na F-01                                                       |
+| S-02       | gated-ai-generation     | Generowanie fiszek AI z przeglądem i akceptacją                      | no                    | Gwiazda przewodnia; czeka na F-01, F-02, S-01                       |
+| S-03       | manual-flashcard-create | Ręczne tworzenie fiszki                                              | no                    | Czeka na S-01; potem równolegle z S-02                              |
+| S-04       | flashcard-edit-delete   | Edycja i świadome usuwanie fiszki                                    | no                    | Czeka na S-01, S-03                                                 |
+| S-05       | srs-review-session      | Sesja powtórek SM-2 z podsumowaniem                                  | no                    | Czeka na S-01, S-03                                                 |
 
 ## Open Roadmap Questions
 
@@ -201,3 +201,5 @@ Foundations below assume these are present and do NOT re-scaffold them.
 (Empty on first generation. `/10x-archive` appends an entry here — and flips that item's `Status` to `done` — when a change whose `Change ID` matches the item is archived. Do NOT pre-populate. Format:)
 
 - **<Slice ID>: <Outcome>** — Archived <YYYY-MM-DD> → `context/archive/<YYYY-MM-DD-change-id>/`. Lesson: <pointer to lessons.md if any, or `—`>.
+
+- **F-01: (foundation) trwały zapis fiszki przypisanej do właściciela, z egzekwowaną izolacją per użytkownik** — Archived 2026-09-13 → `context/archive/2026-09-13-private-flashcard-store/`. Lesson: —.
